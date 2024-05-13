@@ -1,10 +1,10 @@
 #pragma once
 #include <string>
+#include <iostream>
 
 #include <vector>
 #include "Circle.hpp"
-#include "Rectangle.hpp"
-#include "Triangle.hpp"
+#include "Player.hpp"
 
 namespace mt
 {
@@ -16,12 +16,17 @@ namespace mt
         std::string m_capture;
 
         std::vector<mt::Circle> m_circles;
-        //std::vector<mt::Rectangle> m_rectangles;
-        //std::vector<mt::Triangle> m_triangels;
-        //std::vector<mt::Rectangle> m_lines;
 
         int m_n;
         sf::RenderWindow m_window;
+        sf::Texture m_textureBackground;
+        sf::Sprite m_spriteBackground;
+
+        sf::Font m_font;
+        sf::Text m_fpsText;
+        int m_fps = 0;
+
+        Player m_player;
 
         float m_speed = 1.8f;
 
@@ -33,11 +38,12 @@ namespace mt
             m_capture = capture;
         }
 
-        void Setup(int n)
+        bool Setup(int n)
         {
             m_n = n;
             m_window.create(sf::VideoMode(m_width, m_height), m_capture);
 
+            // SETUP CIRCLES
             srand(time(0));
 
             for (int i = 0; i < m_n; i++)
@@ -49,33 +55,58 @@ namespace mt
                 m_circles.back().set_speed(m_speed);
             }
 
-            //for (int i = 0; i < m_n; i++)
-            //{
-            //    m_rectangles.push_back(mt::Rectangle(sf::Vector2f(10 + 20 * i, 10), sf::Vector2f{10.f, 15.f}));
-            //}
+            // GET BACKGROUND
+            if (!m_textureBackground.loadFromFile("assets\\space.jpg"))
+            {
+                std::cout << "Error while loading background.jpg" << std::endl;
+                return false;
+            }
+            m_spriteBackground.setTexture(m_textureBackground);
 
-            //for (int i = 0; i < m_n; i++)
-            //{
-            //    m_triangels.push_back(mt::Triangle(sf::Vector2f(100 + 100 * i, 100), 20));
-            //}
+            // SETUP FPS COUNTER
+            if (!m_font.loadFromFile("assets\\tnr_font.ttf"))
+            {
+                std::cout << "Error while loading arial.ttf" << std::endl;
+                return false;
+            }
+            m_fpsText.setFont(m_font);
+            m_fpsText.setCharacterSize(20); // in pixels, not points!
+            m_fpsText.setStyle(sf::Text::Bold | sf::Text::Underlined);
+            m_fpsText.setColor(sf::Color::Magenta);
 
-            //for (int i = 0; i < m_n; i++)
-            //{
-            //    m_lines.push_back(mt::Rectangle(sf::Vector2f(500 + 100 * i, 200), sf::Vector2f{4, 50}));
-            //}
+            // SETUP PLAYER
+            bool player_setup_result = m_player.setup(
+                sf::Vector2f{ 100.f, (float)m_height / 2.f},
+                sf::Vector2f{ 0.0F, 0.0F },
+                sf::Vector2f{(float)m_width, (float)m_height });
+            if (!player_setup_result) {
+                std::cout << "Error while setup player assets." << std::endl;
+                return false;
+            }
         }
 
         void LifeCycle()
         {
+            sf::Clock clock;
+            float dt;
+
             while (m_window.isOpen())
             {
-                // Îáðàáîòêà ñîáûòèé
+                dt = clock.getElapsedTime().asSeconds();
+                clock.restart();
+
+                // CHECK EVENTS
                 sf::Event event;
                 while (m_window.pollEvent(event))
                 {
                     if (event.type == sf::Event::Closed)
                         m_window.close();
                 }
+                m_player.controll_events();
+
+                // GAME PROCESS
+
+                m_player.move(dt);
 
                 for (int i = 0; i < m_n; i++) {
                     m_circles[i].move();
@@ -101,15 +132,20 @@ namespace mt
                     } 
                 }
 
+                m_fps = static_cast<int>(1.f / dt);
+                m_fpsText.setString("FPS: " + std::to_string(m_fps));
+
+                // DRAW FRAME
                 m_window.clear();
+                m_window.draw(m_spriteBackground);
+
                 for (int i = 0; i < m_n; i++)
                 {
                     m_window.draw(m_circles[i].Get());
-                    //m_window.draw(m_rectangles[i].Get());
-                    //m_window.draw(m_triangels[i].Get());
-                    //m_window.draw(m_lines[i].Get());
                 }
+                m_window.draw(m_player.get_sprite());
 
+                m_window.draw(m_fpsText);
                 m_window.display();
             }
         }

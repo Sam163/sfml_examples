@@ -11,11 +11,11 @@ add_definitions(-DSFML_STATIC)
 
 include_directories("ext/SFML/include/")
 link_directories("ext/SFML/lib/")
-file(COPY "res" DESTINATION "/")
+
 file(COPY "ext/SFML/bin/" DESTINATION "/")
 
 include_directories("inc/")
-add_executable("${PROJECT_NAME}" main.cpp)
+add_executable("${PROJECT_NAME}" main.cpp src/Utils.cpp)
 
 target_link_libraries("${PROJECT_NAME}" sfml-graphics-s-d
         sfml-window-s-d
@@ -32,3 +32,5 @@ target_link_libraries("${PROJECT_NAME}" sfml-graphics-s-d
         vorbis
         ogg
 )
+
+file(COPY "assets" DESTINATION "/")

@@ -1,6 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
+#include "Utils.hpp"
+
 namespace mt
 {
     class Circle
@@ -10,10 +12,6 @@ namespace mt
         sf::CircleShape m_shape;
 
         sf::Vector2f m_velocity{0.1f, 0.1f};
-
-        float norm(const sf::Vector2f& v) {
-            return std::sqrt(v.x * v.x + v.y * v.y);
-        }
 
     public:
         Circle() = default;
